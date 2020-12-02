@@ -24,5 +24,5 @@ def part2_validator(low, high, letter, password):
 
 
 if __name__ == '__main__':
-    print(count_valid(read_input_as_lines(), part1_validator))
-    print(count_valid(read_input_as_lines(), part2_validator))
+    print(count_valid(read_input_as_lines(), part1_validator))  # 517
+    print(count_valid(read_input_as_lines(), part2_validator))  # 284

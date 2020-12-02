@@ -19,5 +19,7 @@ def part2(numbers, target=2020):
 
 if __name__ == '__main__':
     input_numbers = read_input_as_numbers()
+    print(part1(read_input_as_numbers()))  # 1016131
+    print(part2(read_input_as_numbers()))  # 276432018
     time_call(part1, input_numbers)
     time_call(part2, input_numbers)
