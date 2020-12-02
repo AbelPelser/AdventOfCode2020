@@ -1,8 +1,6 @@
-import time
-
 import z3
 
-from util import mult, read_input
+from util import mult, read_input_as_numbers, time_call
 
 
 def find_sum_combo_with_z3(numbers, n, target=2020):
@@ -32,8 +30,6 @@ def part2(numbers):
 
 
 if __name__ == '__main__':
-    input_numbers = read_input()
-    t1 = time.time()
-    print(part1(input_numbers))
-    print(part2(input_numbers))
-    print(f'Time taken: {time.time() - t1}')
+    input_numbers = read_input_as_numbers()
+    time_call(part2, input_numbers)
+    time_call(part1, input_numbers)
