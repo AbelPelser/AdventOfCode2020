@@ -1,6 +1,6 @@
 import itertools
 
-from util import mult, read_input_as_numbers, time_call
+from util import mult, read_input_as_numbers
 
 
 def find_sum_combo(numbers, n, target=2020):
@@ -9,17 +9,14 @@ def find_sum_combo(numbers, n, target=2020):
             return mult(perm)
 
 
-def part1(numbers, target=2020):
-    return find_sum_combo(numbers, 2, target=target)
+def part1():
+    return find_sum_combo(read_input_as_numbers(), 2)
 
 
-def part2(numbers, target=2020):
-    return find_sum_combo(numbers, 3, target=target)
+def part2():
+    return find_sum_combo(read_input_as_numbers(), 3)
 
 
 if __name__ == '__main__':
-    input_numbers = read_input_as_numbers()
-    print(part1(read_input_as_numbers()))  # 1016131
-    print(part2(read_input_as_numbers()))  # 276432018
-    time_call(part1, input_numbers)
-    time_call(part2, input_numbers)
+    print(part1())
+    print(part2())

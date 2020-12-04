@@ -21,15 +21,14 @@ def find_sum_combo_with_z3(numbers, n, target=2020):
         return -1
 
 
-def part1(numbers):
-    return find_sum_combo_with_z3(numbers, 2)
+def part1_z3():
+    return find_sum_combo_with_z3(read_input_as_numbers(), 2)
 
 
-def part2(numbers):
-    return find_sum_combo_with_z3(numbers, 3)
+def part2_z3():
+    return find_sum_combo_with_z3(read_input_as_numbers(), 3)
 
 
 if __name__ == '__main__':
-    input_numbers = read_input_as_numbers()
-    time_call(part2, input_numbers)
-    time_call(part1, input_numbers)
+    print(part1_z3())
+    print(part2_z3())
