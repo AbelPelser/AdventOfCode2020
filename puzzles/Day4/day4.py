@@ -37,7 +37,7 @@ class Passport(object):
             'iyr': Field(lambda v: 2010 <= int(v) <= 2020),
             'eyr': Field(lambda v: 2020 <= int(v) <= 2030),
             'hgt': HeightField(),
-            'hcl': Field(lambda v: re.match('^#[a-f0-9]{6}', v)),
+            'hcl': Field(lambda v: re.match('^#[a-f0-9]{6}$', v)),
             'ecl': Field(lambda v: v in ['amb', 'blu', 'brn', 'gry', 'grn', 'hzl', 'oth']),
             'pid': Field(lambda v: re.match('^[0-9]{9}$', v)),
             'cid': Field(lambda _: True, optional=True)
