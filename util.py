@@ -12,9 +12,17 @@ def time_call(f, *args):
     print(f'Time taken: {time.time() - t1}')
 
 
-def read_input_split(filename, delim):
+def safe_split(text, delim):
+    return list(filter(None, text.split(delim)))
+
+
+def read_input(filename='input'):
     with open(filename) as f:
-        return list(filter(None, f.read().split(delim)))
+        return f.read()
+
+
+def read_input_split(filename, delim):
+    return safe_split(read_input(filename=filename), delim)
 
 
 def read_input_as_lines(filename='input'):
