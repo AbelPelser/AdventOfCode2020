@@ -12,8 +12,12 @@ def time_call(f, *args):
     print(f'Time taken: {time.time() - t1}')
 
 
+def remove_empty(l):
+    return filter(None, l)
+
+
 def safe_split(text, delim):
-    return list(filter(None, text.split(delim)))
+    return list(remove_empty(text.split(delim)))
 
 
 def read_input(filename='input'):
