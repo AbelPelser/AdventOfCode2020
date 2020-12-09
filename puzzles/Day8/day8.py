@@ -62,9 +62,10 @@ def part2():
                            if i not in tried_changing and
                            ('jmp' in new_memory[i] or 'nop' in new_memory[i]))
         tried_changing.add(i_to_change)
-        old_inst = new_memory[i_to_change]
-        new_inst = old_inst.replace('jmp', 'nop') if 'jmp' in old_inst else old_inst.replace('nop', 'jmp')
-        new_memory[i_to_change] = new_inst
+        new_memory[i_to_change] = \
+            new_memory[i_to_change].replace('jmp', 'nop') \
+                if 'jmp' in new_memory[i_to_change] else \
+                new_memory[i_to_change].replace('nop', 'jmp')
         memory = new_memory
 
 
