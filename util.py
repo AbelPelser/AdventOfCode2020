@@ -8,8 +8,9 @@ def mult(iterable):
 
 def time_call(f, *args):
     t1 = time.time()
-    f(*args)
+    result = f(*args)
     print(f'Time taken: {time.time() - t1}')
+    return result
 
 
 def remove_empty(l):
