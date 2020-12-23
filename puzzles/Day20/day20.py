@@ -1,4 +1,5 @@
 import collections
+import re
 from pprint import pprint
 from typing import Dict, List, Optional, Union
 
@@ -8,7 +9,6 @@ from util import mult, read_input, safe_split
 
 EMPTY_TILE_ID = -1
 TOP, RIGHT, BOTTOM, LEFT = 0, 1, 2, 3
-
 
 class Border:
     def __init__(self, bit_str: str, owned_by: Optional['Tile']):
@@ -36,54 +36,34 @@ class Border:
 
 
 class Tile:
-    def __init__(self, tile_id: int, tile_lines: List[str]):
+    def __init__(self, tile_id, tile_lines):
         self.tile_id = tile_id
-        self.lines: List[str] = tile_lines
-        self.lines_array = np.array([[int(c) for c in list(l)] for l in tile_lines])
-
-        self.borders: Optional[List[Border]] = None
-
-        self.tile_top: Optional[Tile]
-        self.tile_right: Optional[Tile]
-        self.tile_bottom: Optional[Tile]
-        self.tile_left: Optional[Tile]
-
-        self.rotation_degrees: int = 0
-        self.mirrored: bool = False
+        self.lines = tile_lines
+        self.lines_array = np.array([list(map(int, l)) for l in tile_lines])
+        self.borders = None
 
     def trim_edges(self):
         self.lines_array = self.lines_array[1:-1, 1:-1]
 
+    def get_neighbour(self, direction):
+        return self.borders[direction].border_link.owned_by
+
     def rotate_left(self):
-        self.rotation_degrees = (self.rotation_degrees - 90) % 360
         self.borders = self.borders[1:] + [self.borders[0]]
         self.lines_array = np.rot90(self.lines_array)
 
-    def rotate_right(self):
-        self.rotation_degrees = (self.rotation_degrees + 90) % 360
-        self.borders = [self.borders[-1]] + self.borders[:-1]
-        for _ in range(3):
-            self.lines_array = np.rot90(self.lines_array)
+    def invert_borders(self):
+        for border in self.borders:
+            value = border.value
+            border.value = border.value_inv
+            border.value_inv = value
 
-    def flip_borders(self):
-        for b in self.borders:
-            value = b.value
-            b.value = b.value_inv
-            b.value_inv = value
-
-    def flip_vertically(self):
-        self.lines_array = np.flipud(self.lines_array)
-        bottom_border = self.borders[BOTTOM]
-        self.borders[BOTTOM] = self.borders[TOP]
-        self.borders[TOP] = bottom_border
-        self.flip_borders()
-
-    def flip_horizontally(self):
+    def mirror(self):
         self.lines_array = np.fliplr(self.lines_array)
         right_border = self.borders[RIGHT]
         self.borders[RIGHT] = self.borders[LEFT]
         self.borders[LEFT] = right_border
-        self.flip_borders()
+        self.invert_borders()
 
     def __str__(self):
         return f'Tile({self.tile_id}, {self.borders})'
@@ -92,32 +72,29 @@ class Tile:
         return str(self)
 
 
-def parse_input_as_tiles(text: str) -> Dict[int, Tile]:
-    tiles_str = safe_split(text, '\n\n')
+def invert_direction(direction):
+    return (direction + 2) % 4
+
+
+def parse_input_as_tiles(text):
     tile_data: Dict[int, Tile] = dict()
 
-    for tile_str in tiles_str:
-        tile_str: str = tile_str.replace('#', '1').replace('.', '0')
-        tile_lines: List[str] = safe_split(tile_str, '\n')
-        tile_id: int = int(tile_lines[0].split('Tile ')[-1].split(':')[0])
-        tile_lines = tile_lines[1:]
-
-        border_top_str = tile_lines[0]
-        border_right_str = ''.join([l[-1] for l in tile_lines])
-        border_bottom_str = tile_lines[-1][::-1]
-        border_left_str = ''.join([l[0] for l in tile_lines])[::-1]
+    for tile_str in safe_split(text, '\n\n'):
+        tile_str = tile_str.replace('#', '1').replace('.', '0')
+        tile_id_str, *tile_lines = safe_split(tile_str, '\n')
+        tile_id = int(*re.match('Tile ([0-9]+):', tile_id_str).groups())
 
         tile = Tile(tile_id, tile_lines)
-        borders = [Border(border_top_str, tile),
-                   Border(border_right_str, tile),
-                   Border(border_bottom_str, tile),
-                   Border(border_left_str, tile)]
-        tile.borders = borders
+        # top, right, bottom, left
+        tile.borders = [Border(tile_lines[0], tile),
+                        Border(''.join([l[-1] for l in tile_lines]), tile),
+                        Border(tile_lines[-1][::-1], tile),
+                        Border(''.join([l[0] for l in tile_lines])[::-1], tile)]
         tile_data[tile_id] = tile
     return tile_data
 
 
-def find_corner_tiles(tile_data: Dict[int, Tile]) -> List[Tile]:
+def find_corner_tiles(tile_data):
     corner_tiles = []
     all_borders = sum([t.borders for t in tile_data.values()], [])
     all_border_values = [b.value for b in all_borders]
@@ -133,7 +110,7 @@ def find_corner_tiles(tile_data: Dict[int, Tile]) -> List[Tile]:
     return corner_tiles
 
 
-def match_borders(tile_data: Dict[int, Tile]):
+def match_borders(tile_data):
     empty_space = Tile(EMPTY_TILE_ID, [])
     edge = Border('0', empty_space)
     all_borders = sum([t.borders for t in tile_data.values()], [])
@@ -150,88 +127,64 @@ def match_borders(tile_data: Dict[int, Tile]):
         unmatched_borders = [b for b in unmatched_borders if not b.border_link]
 
 
-def tmp(current_tile, direction):
+def find_and_rotate_next_tile(current_tile, direction):
     current_border = current_tile.borders[direction]
     next_border = current_border.border_link
     next_tile = next_border.owned_by
     if current_border.value != next_border.value_inv:
-        next_tile.flip_horizontally()
-    while next_tile.borders.index(next_border) != ((direction + 2) % 4):
-        next_tile.rotate_right()
+        next_tile.mirror()
+    while next_tile.borders.index(next_border) != invert_direction(direction):
+        next_tile.rotate_left()
     return next_tile
 
 
-def assemble_img(tile_data: Dict[int, Tile]) -> np.array:
+def assemble_img(tile_data):
     for tile in tile_data.values():
         tile.trim_edges()
     start_corner = find_corner_tiles(tile_data)[0]
 
-    while start_corner.borders[RIGHT].border_link.owned_by.tile_id == EMPTY_TILE_ID or \
-            start_corner.borders[BOTTOM].border_link.owned_by.tile_id == EMPTY_TILE_ID:
-        start_corner.rotate_right()
+    while start_corner.get_neighbour(RIGHT).tile_id == EMPTY_TILE_ID or \
+            start_corner.get_neighbour(BOTTOM).tile_id == EMPTY_TILE_ID:
+        start_corner.rotate_left()
 
-    row_i = 0
-    current_tile = row_start = start_corner
-    row_arrays = [[] for _ in range(GRID_SIZE)]
-    row_arrays[row_i].append(current_tile.lines_array)
+    current_tile = start_corner
+    grid_size = int(len(tile_data.values()) ** 0.5)
+    row_lists = [[] for _ in range(grid_size)]
+    row_lists[0].append(current_tile.lines_array)
 
-    for tile_i in range(1, GRID_SIZE**2):
-        row_i = tile_i // GRID_SIZE
-        if tile_i % GRID_SIZE == 0:
+    for tile_i in range(1, grid_size**2):
+        row_i = tile_i // grid_size
+        if tile_i % grid_size == 0:
             direction = BOTTOM
         else:
             direction = RIGHT if row_i % 2 == 0 else LEFT
-        print(tile_i, row_i, direction)
-        next_tile = tmp(current_tile, direction)
-        if row_i % 2 == 0:
-            row_arrays[row_i].append(next_tile.lines_array)
-        else:
-            row_arrays[row_i].insert(0, next_tile.lines_array)
+        next_tile = find_and_rotate_next_tile(current_tile, direction)
+        row_lists[row_i].append(next_tile.lines_array)
+        current_tile = next_tile
 
-    # while True:
-    #     if current_tile.borders[RIGHT].border_link.owned_by.tile_id != EMPTY_TILE_ID:
-    #         direction = RIGHT
-    #         current_border = current_tile.borders[direction]
-    #         next_border = current_border.border_link
-    #         next_tile = next_border.owned_by
-    #     elif current_tile.borders[BOTTOM].border_link.owned_by.tile_id != EMPTY_TILE_ID:
-    #         direction = BOTTOM
-    #         current_border = row_start.borders[direction]
-    #         next_border = current_border.border_link
-    #         next_tile = next_border.owned_by
-    #         row_start = next_tile
-    #         row_i += 1
-    #     else:
-    #         break
-    #     if current_border.value != next_border.value_inv:
-    #         next_tile.flip_horizontally()
-    #     while next_tile.borders.index(next_border) != ((direction + 2) % 4):
-    #         next_tile.rotate_right()
-    #     row_arrays[row_i].append(next_tile.lines_array)
-    #     current_tile = next_tile
-
-    for i in range(len(row_arrays)):
-        row_arrays[i] = np.concatenate(row_arrays[i], axis=1)
+    row_arrays = []
+    for i in range(len(row_lists)):
+        # Reverse every 2nd row, since we snaked our way through the puzzle
+        row_list = row_lists[i] if i % 2 == 0 else list(reversed(row_lists[i]))
+        row_arrays.append(np.concatenate(row_list, axis=1))
     return np.concatenate(row_arrays)
 
 
-def part1_hacky(tile_data: Dict[int, Tile]) -> int:
-    return mult(t.tile_id for t in find_corner_tiles(tile_data))
+def part1():
+    return mult(t.tile_id for t in find_corner_tiles(parse_input_as_tiles(read_input())))
 
 
-def part2_hackier(img):
-    img1 = np.where(img == 1, '#', img)
-    img2 = np.where(img == 0, '.', img1)
+def find_seamonsters_in_img(img):
+    img2 = np.where(img == 1, '#', img)
+    img2 = np.where(img == 0, '.', img2)
 
-    sea_monster_str = """                  # 
-#    ##    ##    ###
- #  #  #  #  #  #   """
-    sea_monster_arr = np.array([list(l) for l in sea_monster_str.split('\n')])
+    sea_monster_str = "                  # \n#    ##    ##    ###\n #  #  #  #  #  #   "
+    sea_monster_arr = np.array(list(map(list, sea_monster_str.split('\n'))))
     sea_monster_match_arr = sea_monster_arr == '#'
     sea_monster_width = len(sea_monster_arr[0])
     sea_monster_height = len(sea_monster_arr)
     n_seamonsters = 0
-    for i in range(len(img1) - sea_monster_width):
+    for i in range(len(img2) - sea_monster_width):
         for j in range(len(img2[0]) - sea_monster_height):
             img_part = img2[j:j+sea_monster_height, i:i+sea_monster_width]
             img_part_matches = img_part == sea_monster_arr
@@ -241,29 +194,30 @@ def part2_hackier(img):
     return np.sum(img2 == '#'), n_seamonsters
 
 
-if __name__ == '__main__':
+def part2():
     text = read_input()
 
     tile_data = parse_input_as_tiles(text)
-
-    GRID_SIZE = int(len(tile_data.values()) ** 0.5)
-
     match_borders(tile_data)
-
     img = assemble_img(tile_data)
     n_seamonsters = 0
+    roughness = None
     for _ in range(4):
-        answer, n_seamonsters = part2_hackier(img)
+        roughness, n_seamonsters = find_seamonsters_in_img(img)
         if n_seamonsters > 0:
             break
         img = np.rot90(img)
     if n_seamonsters == 0:
         img = np.flipud(img)
         for _ in range(4):
-            answer, n_seamonsters = part2_hackier(img)
+            roughness, n_seamonsters = find_seamonsters_in_img(img)
             if n_seamonsters > 0:
                 break
             img = np.rot90(img)
+    assert roughness is not None
+    return roughness
 
-    print(part1_hacky(tile_data))
-    print(answer)
+
+if __name__ == '__main__':
+    print(part1())
+    print(part2())

@@ -20,6 +20,7 @@ def part2():
     # Make sure you have the latest geckodriver (https://github.com/mozilla/geckodriver/releases) and add it to PATH
     # Also make sure to replace os.environ[...] with the path to a valid Firefox profile,
     # such as /home/username/.mozilla/firefox/a123bc45.Selenium
+    os.environ['SELENIUM_FP'] = '/home/abel/.mozilla/firefox/i523wi41.Selenium'
     fp = webdriver.FirefoxProfile(os.environ['SELENIUM_FP'])
     driver = webdriver.Firefox(fp)
     try:

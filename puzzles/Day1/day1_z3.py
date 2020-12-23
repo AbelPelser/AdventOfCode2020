@@ -30,16 +30,5 @@ def part2_z3():
 
 
 if __name__ == '__main__':
-    # print(part1_z3())
-    # print(part2_z3())
-    s = z3.Solver()
-
-    x = z3.Int('x')
-    y = z3.Int('y')
-    s.add(((2 * (x**2)) - (8 * x) + 6) == 0)
-
-    while str(s.check()) == 'sat':
-        m = s.model()
-        print(f'Model = {m}')
-        s.add(x != s.model()[x].as_long())
-    print('No more solutions')
+    print(part1_z3())
+    print(part2_z3())
