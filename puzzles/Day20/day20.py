@@ -1,29 +1,29 @@
-import collections
 import re
-from pprint import pprint
-from typing import Dict, List, Optional, Union
+from typing import Optional
 
 import numpy as np
+# import cv2
 
 from util import mult, read_input, safe_split
 
 EMPTY_TILE_ID = -1
-TOP, RIGHT, BOTTOM, LEFT = 0, 1, 2, 3
+DIRECTIONS = list(range(4))
+TOP, RIGHT, BOTTOM, LEFT = DIRECTIONS
+
 
 class Border:
-    def __init__(self, bit_str: str, owned_by: Optional['Tile']):
-        self.value = int(bit_str, 2)
-        self.value_inv = int(bit_str[::-1], 2)
+    def __init__(self, value_str: str, owned_by):
+        self.value = value_str
+        self.value_inv = value_str[::-1]
         self.owned_by = owned_by
         self.border_link: Optional[Border] = None
 
-    def could_neighbour(self, other: 'Border') -> bool:
+    def could_neighbour(self, other):
         if self == other or self.border_link is not None or other.border_link is not None:
             return False
-        res = self.value == other.value or self.value == other.value_inv
-        return res
+        return self.value == other.value or self.value == other.value_inv
 
-    def link(self, other: 'Border') -> None:
+    def link(self, other):
         self.border_link = other
         other.border_link = self
 
@@ -39,7 +39,7 @@ class Tile:
     def __init__(self, tile_id, tile_lines):
         self.tile_id = tile_id
         self.lines = tile_lines
-        self.lines_array = np.array([list(map(int, l)) for l in tile_lines])
+        self.lines_array = np.array(list(map(list, tile_lines)))
         self.borders = None
 
     def trim_edges(self):
@@ -65,6 +65,12 @@ class Tile:
         self.borders[LEFT] = right_border
         self.invert_borders()
 
+    def is_edge(self, direction):
+        return self.get_neighbour(direction).tile_id == EMPTY_TILE_ID
+
+    def is_corner(self):
+        return len([d for d in DIRECTIONS if self.is_edge(d)]) == 2
+
     def __str__(self):
         return f'Tile({self.tile_id}, {self.borders})'
 
@@ -77,10 +83,9 @@ def invert_direction(direction):
 
 
 def parse_input_as_tiles(text):
-    tile_data: Dict[int, Tile] = dict()
+    tile_data = dict()
 
     for tile_str in safe_split(text, '\n\n'):
-        tile_str = tile_str.replace('#', '1').replace('.', '0')
         tile_id_str, *tile_lines = safe_split(tile_str, '\n')
         tile_id = int(*re.match('Tile ([0-9]+):', tile_id_str).groups())
 
@@ -95,19 +100,7 @@ def parse_input_as_tiles(text):
 
 
 def find_corner_tiles(tile_data):
-    corner_tiles = []
-    all_borders = sum([t.borders for t in tile_data.values()], [])
-    all_border_values = [b.value for b in all_borders]
-    all_border_inv_values = [b.value_inv for b in all_borders]
-    for tile in tile_data.values():
-        n_unmatched_borders = 0
-        for border in tile.borders:
-            if border.value not in all_border_inv_values and all_border_values.count(border.value) == 1 and \
-                    border.value_inv not in all_border_values and all_border_inv_values.count(border.value_inv) == 1:
-                n_unmatched_borders += 1
-        if n_unmatched_borders == 2:
-            corner_tiles.append(tile)
-    return corner_tiles
+    return list(filter(lambda t: t.is_corner(), tile_data.values()))
 
 
 def match_borders(tile_data):
@@ -117,23 +110,25 @@ def match_borders(tile_data):
     unmatched_borders = all_borders
     while len(unmatched_borders) > 0:
         for border in unmatched_borders:
+            if border.border_link:
+                # If matched during previous iteration, ignore
+                continue
             potential_matches = [b for b in unmatched_borders if border.could_neighbour(b)]
             if len(potential_matches) == 0:
                 border.link(edge)
-                break
             elif len(potential_matches) == 1:
                 border.link(potential_matches[0])
-                break
         unmatched_borders = [b for b in unmatched_borders if not b.border_link]
 
 
-def find_and_rotate_next_tile(current_tile, direction):
-    current_border = current_tile.borders[direction]
-    next_border = current_border.border_link
-    next_tile = next_border.owned_by
-    if current_border.value != next_border.value_inv:
+def find_and_rotate_next_tile(current_tile, border_direction):
+    border = current_tile.borders[border_direction]
+    neighbour_border = border.border_link
+    next_tile = neighbour_border.owned_by
+    if border.value != neighbour_border.value_inv:
         next_tile.mirror()
-    while next_tile.borders.index(next_border) != invert_direction(direction):
+    target_direction = invert_direction(border_direction)
+    while next_tile.borders.index(neighbour_border) != target_direction:
         next_tile.rotate_left()
     return next_tile
 
@@ -152,11 +147,13 @@ def assemble_img(tile_data):
     row_lists = [[] for _ in range(grid_size)]
     row_lists[0].append(current_tile.lines_array)
 
-    for tile_i in range(1, grid_size**2):
+    for tile_i in range(1, grid_size ** 2):
         row_i = tile_i // grid_size
         if tile_i % grid_size == 0:
+            # End of line, go down
             direction = BOTTOM
         else:
+            # Alternate between left and right
             direction = RIGHT if row_i % 2 == 0 else LEFT
         next_tile = find_and_rotate_next_tile(current_tile, direction)
         row_lists[row_i].append(next_tile.lines_array)
@@ -170,52 +167,45 @@ def assemble_img(tile_data):
     return np.concatenate(row_arrays)
 
 
-def part1():
-    return mult(t.tile_id for t in find_corner_tiles(parse_input_as_tiles(read_input())))
-
-
-def find_seamonsters_in_img(img):
-    img2 = np.where(img == 1, '#', img)
-    img2 = np.where(img == 0, '.', img2)
-
+def find_sea_monsters_in_img(img):
     sea_monster_str = "                  # \n#    ##    ##    ###\n #  #  #  #  #  #   "
     sea_monster_arr = np.array(list(map(list, sea_monster_str.split('\n'))))
     sea_monster_match_arr = sea_monster_arr == '#'
     sea_monster_width = len(sea_monster_arr[0])
     sea_monster_height = len(sea_monster_arr)
-    n_seamonsters = 0
-    for i in range(len(img2) - sea_monster_width):
-        for j in range(len(img2[0]) - sea_monster_height):
-            img_part = img2[j:j+sea_monster_height, i:i+sea_monster_width]
+
+    # res = cv2.matchTemplate(img, sea_monster_arr, cv2.TM_CCOEFF_NORMED)
+
+    n_sea_monsters = 0
+    for i in range(len(img) - sea_monster_width):
+        for j in range(len(img[0]) - sea_monster_height):
+            img_part = img[j:j + sea_monster_height, i:i + sea_monster_width]
             img_part_matches = img_part == sea_monster_arr
             if np.all(img_part_matches == sea_monster_match_arr):
-                n_seamonsters += 1
+                n_sea_monsters += 1
                 img_part[img_part_matches] = 'O'
-    return np.sum(img2 == '#'), n_seamonsters
+    return np.sum(img == '#'), n_sea_monsters
+
+
+def part1():
+    tile_data = parse_input_as_tiles(read_input())
+    match_borders(tile_data)
+    return mult(t.tile_id for t in find_corner_tiles(tile_data))
 
 
 def part2():
-    text = read_input()
-
-    tile_data = parse_input_as_tiles(text)
+    tile_data = parse_input_as_tiles(read_input())
     match_borders(tile_data)
     img = assemble_img(tile_data)
-    n_seamonsters = 0
-    roughness = None
-    for _ in range(4):
-        roughness, n_seamonsters = find_seamonsters_in_img(img)
-        if n_seamonsters > 0:
-            break
-        img = np.rot90(img)
-    if n_seamonsters == 0:
-        img = np.flipud(img)
+
+    def find_roughness(image):
         for _ in range(4):
-            roughness, n_seamonsters = find_seamonsters_in_img(img)
-            if n_seamonsters > 0:
-                break
-            img = np.rot90(img)
-    assert roughness is not None
-    return roughness
+            roughness, n_sea_monsters = find_sea_monsters_in_img(image)
+            if n_sea_monsters > 0:
+                return roughness
+            image = np.rot90(image)
+
+    return find_roughness(img) or find_roughness(np.flipud(img))
 
 
 if __name__ == '__main__':

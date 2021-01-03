@@ -1,4 +1,3 @@
-import math
 import threading
 from typing import Callable, Dict, List
 
@@ -68,7 +67,6 @@ def part2():
                 if 'jmp' in new_memory[i_to_change] else \
                 new_memory[i_to_change].replace('nop', 'jmp')
         memory = new_memory
-
 
 
 if __name__ == '__main__':

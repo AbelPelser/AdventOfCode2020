@@ -1,6 +1,6 @@
 import z3
 
-from util import mult, read_input_as_numbers, time_call
+from util import mult, read_input_as_numbers
 
 
 def find_sum_combo_with_z3(numbers, n, target=2020):

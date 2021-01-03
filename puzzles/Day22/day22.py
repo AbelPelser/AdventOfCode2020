@@ -5,38 +5,38 @@ def calc_score(deck):
     return sum((len(deck) - i) * card for i, card in enumerate(deck))
 
 
-def rec_combat(deck0, deck1):
+def rec_combat(decks, upper_game=False):
     seen_before = set()
-    while len(deck0) > 0 and len(deck1) > 0:
-        deck_tuple = (tuple(deck0), tuple(deck1))
+    while all(decks):
+        deck_tuple = tuple(map(tuple, decks))
         if deck_tuple in seen_before:
-            return 0, calc_score(deck0)
+            return 0, None if not upper_game else calc_score(decks[0])
         else:
             seen_before.add(deck_tuple)
-        card0, *deck0 = deck0
-        card1, *deck1 = deck1
-        if len(deck0) >= card0 and len(deck1) >= card1:
-            round_winner, _ = rec_combat(deck0[:card0], deck1[:card1])
-        else:
-            round_winner = 0 if card0 > card1 else 1
+        cards_drawn = [deck[0] for deck in decks]
+        decks = [deck[1:] for deck in decks]
 
-        if round_winner == 0:
-            deck0 += [card0, card1]
+        if all(len(deck) >= card for deck, card in zip(decks, cards_drawn)):
+            round_winner, _ = rec_combat([deck[:card] for deck, card in zip(decks, cards_drawn)])
         else:
-            deck1 += [card1, card0]
-    game_winner = 1 if len(deck0) == 0 else 0
-    return game_winner, calc_score(deck0 if game_winner == 0 else deck1)
+            round_winner = cards_drawn.index(max(cards_drawn))
+
+        spoils = [cards_drawn[round_winner]] + cards_drawn[:round_winner] + cards_drawn[round_winner + 1:]
+        decks[round_winner] += spoils
+    game_winner_deck = next(filter(None, decks))
+    return decks.index(game_winner_deck), None if not upper_game else calc_score(game_winner_deck)
 
 
 def combat(deck0, deck1):
-    while all(map(lambda l: len(l) > 0, [deck0, deck1])):
+    while all([deck0, deck1]):
         card0, *deck0 = deck0
         card1, *deck1 = deck1
+        spoils = sorted([card0, card1], reverse=True)
         if card0 > card1:
-            deck0 += [card0, card1]
+            deck0 += spoils
         else:
-            deck1 += [card1, card0]
-    return calc_score(deck0 if len(deck1) == 0 else deck1)
+            deck1 += spoils
+    return calc_score(deck0 or deck1)
 
 
 def parse_decks(text):
@@ -49,7 +49,7 @@ def part1():
 
 
 def part2():
-    return rec_combat(*parse_decks(read_input()))[1]
+    return rec_combat(parse_decks(read_input()), upper_game=True)[1]
 
 
 if __name__ == '__main__':
