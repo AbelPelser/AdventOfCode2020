@@ -4,12 +4,12 @@ from collections import defaultdict
 from util import read_input_as_lines
 
 direction_steps = {
-    'e': (10, 0),
-    'se': (5, -10),
-    'sw': (-5, -10),
-    'nw': (-5, 10),
-    'w': (-10, 0),
-    'ne': (5, 10)
+    'e': (2, 0),
+    'se': (1, -2),
+    'sw': (-1, -2),
+    'nw': (-1, 2),
+    'w': (-2, 0),
+    'ne': (1, 2)
 }
 
 

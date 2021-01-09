@@ -185,7 +185,7 @@ def part1():
     grid = parse_grid1(read_input_as_lines())
     for _ in range(6):
         grid = step_part1(grid)
-    return get_n_active_cubes1(grid)  # 315
+    return get_n_active_cubes1(grid)
 
 
 def part2():

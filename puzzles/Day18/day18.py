@@ -4,7 +4,7 @@ from util import read_input_as_lines
 
 
 class FakeInt(object):
-    def __init__(self, value: int):
+    def __init__(self, value):
         self.value = value
 
     def __add__(self, other):
@@ -42,11 +42,11 @@ def split_sum(s):
     return sum_list
 
 
-def eval_term(s: str) -> int:
-    return int(s) if s.isdigit() else eval_sum_part1(s)
+def eval_term(term):
+    return int(term) if term.isdigit() else eval_sum_part1(term)
 
 
-def eval_sum_part1(s: str) -> int:
+def eval_sum_part1(s):
     sum_list = split_sum(s.strip())
     if len(sum_list) == 0:
         return 0

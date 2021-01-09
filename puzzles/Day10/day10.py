@@ -1,18 +1,15 @@
-from typing import List
-
 from util import mult, read_input_as_numbers
 
 
-def read_all_voltages_sorted(filename='input') -> List[int]:
+def read_all_voltages_sorted(filename='input'):
     numbers = sorted(read_input_as_numbers(filename=filename))
-    assert len(numbers) > 0
     if numbers[0] != 0:
         numbers = [0] + numbers
     numbers.append(max(numbers) + 3)
     return numbers
 
 
-def get_n_combinations(number_sorted: List[int], i: int = 0) -> int:
+def get_n_combinations(number_sorted, i=0):
     if i == len(number_sorted) - 1:
         return 1
     count = 0
@@ -23,7 +20,7 @@ def get_n_combinations(number_sorted: List[int], i: int = 0) -> int:
     return count
 
 
-def partition_input(numbers: List[int]) -> List[List[int]]:
+def partition_input(numbers):
     partition_start = 0
     partitions = []
     for i in range(1, len(numbers)):

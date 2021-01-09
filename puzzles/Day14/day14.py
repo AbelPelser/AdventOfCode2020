@@ -44,9 +44,9 @@ def init_memory(lines, write_to_memory):
     bm = None
     for line in lines:
         if line.startswith('mask'):
-            bm, = re.match("mask = ([01X]*)", line).groups()
+            bm, = re.match('mask = ([01X]*)', line).groups()
         else:
-            addr_str, val_str = re.match("mem\\[([0-9]*)] = ([0-9]*)", line).groups()
+            addr_str, val_str = re.match('mem\\[([0-9]*)] = ([0-9]*)', line).groups()
             val_bit_str = bin(int(val_str))[2:].rjust(len(bm), '0')
             addr_bit_str = bin(int(addr_str))[2:].rjust(len(bm), '0')
             write_to_memory(memory, addr_bit_str, val_bit_str, bm)

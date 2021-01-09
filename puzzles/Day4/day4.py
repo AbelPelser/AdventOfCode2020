@@ -1,5 +1,4 @@
 import re
-from typing import Dict
 
 from util import read_input_as_passports
 
@@ -32,7 +31,7 @@ class HeightField(Field):
 
 class Passport(object):
     def __init__(self, passport_str):
-        self.fields: Dict[str, Field] = {
+        self.fields = {
             'byr': Field(lambda v: 1920 <= int(v) <= 2002),
             'iyr': Field(lambda v: 2010 <= int(v) <= 2020),
             'eyr': Field(lambda v: 2020 <= int(v) <= 2030),

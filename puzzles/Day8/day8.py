@@ -1,11 +1,11 @@
 import threading
-from typing import Callable, Dict, List
+from typing import Callable, Dict
 
 from util import read_input_as_lines
 
 
 class Console(threading.Thread):
-    def __init__(self, memory: List[str]):
+    def __init__(self, memory):
         super().__init__()
         self.memory = memory
         self.accumulator = 0
@@ -17,16 +17,16 @@ class Console(threading.Thread):
             'nop': self.nop
         }
 
-    def acc(self, param: int) -> None:
+    def acc(self, param: int):
         self.accumulator += param
 
-    def jmp(self, param: int) -> None:
+    def jmp(self, param: int):
         self.instruction_pointer += param
 
-    def nop(self, param: int) -> None:
+    def nop(self, param: int):
         pass
 
-    def execute_instruction(self) -> None:
+    def execute_instruction(self):
         instruction, param = self.memory[self.instruction_pointer].split(' ')
         inst_ptr_before = self.instruction_pointer
         self.inst_map[instruction](int(param))

@@ -1,0 +1,9 @@
+cffi==1.14.3
+greenlet==0.4.13
+meson==0.54.2
+numpy==1.19.4
+pkg-resources==0.0.0
+readline==6.2.4.1
+selenium==3.141.0
+urllib3==1.26.2
+z3-solver==4.8.9.0

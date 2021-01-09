@@ -1,14 +1,10 @@
-from typing import Optional
-
-from util import time_call
-
 puzzle_input = list(map(int, list('586439172')))
 
 
 class LinkedList:
     def __init__(self):
-        self.root: Optional[Node] = None
-        self.current: Optional[Node] = None
+        self.root = None
+        self.current = None
         self.node_dict = {}
 
     def add_node(self, cup):

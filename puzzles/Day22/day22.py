@@ -5,14 +5,18 @@ def calc_score(deck):
     return sum((len(deck) - i) * card for i, card in enumerate(deck))
 
 
+def get_winning_deck(decks):
+    return next(filter(None, decks))
+
+
 def rec_combat(decks, upper_game=False):
     seen_before = set()
     while all(decks):
         deck_tuple = tuple(map(tuple, decks))
         if deck_tuple in seen_before:
-            return 0, None if not upper_game else calc_score(decks[0])
-        else:
-            seen_before.add(deck_tuple)
+            return 0, calc_score(decks[0]) if upper_game else None
+        seen_before.add(deck_tuple)
+
         cards_drawn = [deck[0] for deck in decks]
         decks = [deck[1:] for deck in decks]
 
@@ -23,20 +27,18 @@ def rec_combat(decks, upper_game=False):
 
         spoils = [cards_drawn[round_winner]] + cards_drawn[:round_winner] + cards_drawn[round_winner + 1:]
         decks[round_winner] += spoils
-    game_winner_deck = next(filter(None, decks))
-    return decks.index(game_winner_deck), None if not upper_game else calc_score(game_winner_deck)
+    game_winner_deck = get_winning_deck(decks)
+    return decks.index(game_winner_deck), calc_score(game_winner_deck) if upper_game else None
 
 
-def combat(deck0, deck1):
-    while all([deck0, deck1]):
-        card0, *deck0 = deck0
-        card1, *deck1 = deck1
-        spoils = sorted([card0, card1], reverse=True)
-        if card0 > card1:
-            deck0 += spoils
-        else:
-            deck1 += spoils
-    return calc_score(deck0 or deck1)
+def combat(decks):
+    while all(decks):
+        cards_drawn = [deck[0] for deck in decks]
+        decks = [deck[1:] for deck in decks]
+        round_winner = cards_drawn.index(max(cards_drawn))
+        spoils = [cards_drawn[round_winner]] + cards_drawn[:round_winner] + cards_drawn[round_winner + 1:]
+        decks[round_winner] += spoils
+    return calc_score(get_winning_deck(decks))
 
 
 def parse_decks(text):
@@ -45,7 +47,7 @@ def parse_decks(text):
 
 
 def part1():
-    return combat(*parse_decks(read_input()))
+    return combat(parse_decks(read_input()))
 
 
 def part2():

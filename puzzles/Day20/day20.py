@@ -1,10 +1,10 @@
 import re
-from typing import Optional
 
 import numpy as np
-# import cv2
 
 from util import mult, read_input, safe_split
+
+# import cv2
 
 EMPTY_TILE_ID = -1
 DIRECTIONS = list(range(4))
@@ -12,11 +12,11 @@ TOP, RIGHT, BOTTOM, LEFT = DIRECTIONS
 
 
 class Border:
-    def __init__(self, value_str: str, owned_by):
+    def __init__(self, value_str, owned_by):
         self.value = value_str
         self.value_inv = value_str[::-1]
         self.owned_by = owned_by
-        self.border_link: Optional[Border] = None
+        self.border_link = None
 
     def could_neighbour(self, other):
         if self == other or self.border_link is not None or other.border_link is not None:
@@ -26,13 +26,6 @@ class Border:
     def link(self, other):
         self.border_link = other
         other.border_link = self
-
-    def __str__(self):
-        other_tile_id = 'None' if self.border_link is None else self.border_link.owned_by.tile_id
-        return f'{self.value}/{self.value_inv} [{self.owned_by.tile_id} -> {other_tile_id}]'
-
-    def __repr__(self):
-        return str(self)
 
 
 class Tile:
@@ -70,12 +63,6 @@ class Tile:
 
     def is_corner(self):
         return len([d for d in DIRECTIONS if self.is_edge(d)]) == 2
-
-    def __str__(self):
-        return f'Tile({self.tile_id}, {self.borders})'
-
-    def __repr__(self):
-        return str(self)
 
 
 def invert_direction(direction):

@@ -1,5 +1,3 @@
-from typing import List
-
 from util import mult, read_input, safe_split
 
 
@@ -25,18 +23,18 @@ def find_possible_fields(field_value, field_rules):
 
 
 class Position:
-    def __init__(self, index: int):
+    def __init__(self, index):
         self.index = index
-        self.possible_fields: List[Field] = list()
+        self.possible_fields = list()
 
 
 class Field:
-    def __init__(self, name: str):
+    def __init__(self, name):
         self.name = name
-        self.possible_positions: List[Position] = list()
+        self.possible_positions = list()
 
 
-def find_field_positions(positions: List[Position], field_names: List[Field]):
+def find_field_positions(positions, field_names):
     locations_per_field = dict()
 
     def link_field_to_position(mapped_f, mapped_p):
@@ -92,7 +90,7 @@ def part2():
     valid_tickets = list(filter(lambda t: ticket_is_valid(t, field_rules), nearby_tickets))
 
     fields = {field_name: Field(field_name) for field_name in field_rules.keys()}
-    positions: List[Position] = [Position(i) for i in range(len(fields))]
+    positions = [Position(i) for i in range(len(fields))]
 
     for position in positions:
         possible_fieldnames_str = set.intersection(

@@ -1,6 +1,5 @@
 import re
 from collections import defaultdict
-from typing import Dict, List, Tuple
 
 from util import read_input_as_lines, remove_empty
 
@@ -17,9 +16,9 @@ def get_n_bags_contained(bag_dict, bag_type):
                for amount, bag_type_contained in bag_dict[bag_type])
 
 
-def parse_line(line: str) -> Tuple[str, List[Tuple[int, str]]]:
+def parse_line(line):
     bag_type, bags_contained_str = re.fullmatch('([a-z ]+) bags contain ([a-z0-9, ]*).', line).groups()
-    bags_contained_list: List[Tuple[int, str]] = []
+    bags_contained_list = []
     for bag in bags_contained_str.split(', '):
         amount, bag_type_contained = remove_empty(
             re.fullmatch('(?:(no) (other bags))|(?:([0-9]+) ([a-z ]+) bags?)', bag).groups())
@@ -28,7 +27,7 @@ def parse_line(line: str) -> Tuple[str, List[Tuple[int, str]]]:
     return bag_type, bags_contained_list
 
 
-def parse_container_to_contained() -> Dict[str, List[Tuple[int, str]]]:
+def parse_container_to_contained():
     bag_dict = defaultdict(list)
     for line in read_input_as_lines():
         bag_type, bags_contained_list = parse_line(line)
@@ -36,7 +35,7 @@ def parse_container_to_contained() -> Dict[str, List[Tuple[int, str]]]:
     return bag_dict
 
 
-def parse_contained_to_container() -> Dict[str, List[Tuple[int, str]]]:
+def parse_contained_to_container():
     bag_dict = defaultdict(list)
     for line in read_input_as_lines():
         bag_type, bags_contained_list = parse_line(line)

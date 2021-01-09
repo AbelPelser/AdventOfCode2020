@@ -9,31 +9,31 @@ class NavigationComputer(ABC):
         self.location = [0, 0]
 
     @abstractmethod
-    def left(self, amount: int):
+    def left(self, amount):
         pass
 
     @abstractmethod
-    def right(self, amount: int):
+    def right(self, amount):
         pass
 
     @abstractmethod
-    def north(self, amount: int):
+    def north(self, amount):
         pass
 
     @abstractmethod
-    def south(self, amount: int):
+    def south(self, amount):
         pass
 
     @abstractmethod
-    def west(self, amount: int):
+    def west(self, amount):
         pass
 
     @abstractmethod
-    def east(self, amount: int):
+    def east(self, amount):
         pass
 
     @abstractmethod
-    def forward(self, amount: int):
+    def forward(self, amount):
         pass
 
     def run(self, input_lines):
@@ -64,25 +64,25 @@ class NavigationComputer1(NavigationComputer):
         # east, north, west, south
         self.direction_steps = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 
-    def left(self, amount: int):
+    def left(self, amount):
         self.direction_i = int(self.direction_i + (amount / 90)) % len(self.direction_steps)
 
-    def right(self, amount: int):
+    def right(self, amount):
         self.direction_i = int(self.direction_i - (amount / 90)) % len(self.direction_steps)
 
-    def north(self, amount: int):
+    def north(self, amount):
         self.location[1] += amount
 
-    def south(self, amount: int):
+    def south(self, amount):
         self.location[1] -= amount
 
-    def east(self, amount: int):
+    def east(self, amount):
         self.location[0] += amount
 
-    def west(self, amount: int):
+    def west(self, amount):
         self.location[0] -= amount
 
-    def forward(self, amount: int):
+    def forward(self, amount):
         d_x, d_y = self.direction_steps[self.direction_i]
         self.location[0] += d_x * amount
         self.location[1] += d_y * amount
@@ -100,25 +100,25 @@ class NavigationComputer2(NavigationComputer):
         new_y = round(-x * math.sin(radians) + y * math.cos(radians))
         self.relative_waypoint = [new_x, new_y]
 
-    def left(self, amount: int):
+    def left(self, amount):
         self.rotate_waypoint(-amount)
 
-    def right(self, amount: int):
+    def right(self, amount):
         self.rotate_waypoint(amount)
 
-    def north(self, amount: int):
+    def north(self, amount):
         self.relative_waypoint[1] += amount
 
-    def south(self, amount: int):
+    def south(self, amount):
         self.relative_waypoint[1] -= amount
 
-    def east(self, amount: int):
+    def east(self, amount):
         self.relative_waypoint[0] += amount
 
-    def west(self, amount: int):
+    def west(self, amount):
         self.relative_waypoint[0] -= amount
 
-    def forward(self, amount: int):
+    def forward(self, amount):
         self.location[0] += self.relative_waypoint[0] * amount
         self.location[1] += self.relative_waypoint[1] * amount
 

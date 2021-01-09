@@ -42,6 +42,5 @@ def parse_input(lines):
 
 
 if __name__ == '__main__':
-    lines = read_input_as_lines()
     print(part1())
     print(part2())
